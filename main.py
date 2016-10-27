@@ -9,6 +9,10 @@
 from culori import *
 
 ld = chr(955)  # lambda se afla pe pozitia 955 in codul ASCII in Python 3
+wordlist = []
+set_of_rules = []
+number_of_rules = 0
+v = ''
 
 
 class Rule:
@@ -71,7 +75,7 @@ def get_rules(set_of_rules):
 
 
 def apply_rules(set_of_rules, word):
-    print("{}{}" .format("\n",warning(word)),end='')
+    print("{}{}".format("\n", warning(word)), end='')
     i = 0
     while i < len(set_of_rules):
         try:
@@ -81,8 +85,8 @@ def apply_rules(set_of_rules, word):
             continue
         word = word[:word.index(set_of_rules[i].rule_in)] + set_of_rules[i].rule_out + word[word.index(
             set_of_rules[i].rule_in) + len(set_of_rules[i].rule_in):]
-        print("->{}".format(word),end='')
-        i=0
+        print("->{}".format(word), end='')
+        i = 0
 
 
 def main_menu():
@@ -112,7 +116,7 @@ def main_menu():
 
         elif int(option) == 2:
             while True:
-                print("Dictionary: ",v)
+                print("Dictionary: ", v)
                 print("Number of rules: ", end='')
                 rules_number = int(input())
                 set_of_rules = []
@@ -157,8 +161,18 @@ def main_menu():
                     break
 
         elif int(option) == 4:
+            try:
+                wordlist
+            except:
+                print(error("Wordlist is empty."), "Press {} to go back to main.".format(warning("<any key>")))
+                input()
+                main_menu()
+            if not wordlist:
+                print(error("Wordlist is empty."), "Press {} to go back to main.".format(warning("<any key>")))
+                input()
+                main_menu()
             for word in wordlist:
-                apply_rules(set_of_rules,word)
+                apply_rules(set_of_rules, word)
         elif int(option) == 5:
             print("exit now")
         else:
