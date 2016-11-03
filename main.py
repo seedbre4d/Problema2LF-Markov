@@ -1,14 +1,13 @@
 # Implementarea algoritmului lui Markov
 # Working: algorithm itself
 # TODO: implement lambda
-# TODO: implement . end of algorithm
 # TODO: organize and unify
 # TODO: comment code
-
+# ce jeg de materie
 
 from culori import *
 
-ld = chr(955)  # lambda se afla pe pozitia 955 in codul ASCII in Python 3
+ld = chr(955) # 955 is the position of λ in the complete ASCII dictionary. chr(955) just produces λ (Unicode req.)
 wordlist = []
 set_of_rules = []
 number_of_rules = 0
@@ -18,8 +17,8 @@ v = ''
 class Rule:
     def __init__(self, dictionary):
         self.v = dictionary
-        self.rule_in = ""
-        self.rule_out = ""
+        self.rule_in = ''
+        self.rule_out = ''
 
     def set(self):
         while True:
@@ -27,19 +26,19 @@ class Rule:
             self.rule_in = input()
             if is_in_dictionary(self.v, self.rule_in):
                 break
-            print("Regula contine cel putin un caracter care nu face parte din dictionarul dat.\nIncearca din nou")
+            print(error("Rule containing at least one char that is not included withtin dictionary.),"),'\n',warning("Try again."))
         while True:
             print("Out: ", end='')
             self.rule_out = input()
             if is_in_dictionary(self.v, self.rule_out):
                 break
-            print("Regula contine cel putin un caracter care nu face parte din dictionarul dat.\nIncearca din nou")
+            print(error("Rule containing at least one char that is not included withtin dictionary.),"), '\n',warning("Try again."))
 
     def get(self):
         return "{} -> {}".format(self.rule_in, self.rule_out)
 
 
-def is_in_dictionary(v: str, word: str):
+def is_in_dictionary(v, word):
     for ch in word:
         try:
             v.index(ch)
@@ -51,7 +50,7 @@ def is_in_dictionary(v: str, word: str):
     return True
 
 
-def is_dictionary(v: str):
+def is_dictionary(v):
     for ch in v:
         try:
             v[v.index(ch) + 1:].index(ch)
@@ -86,16 +85,26 @@ def apply_rules(set_of_rules, word):
         word = word[:word.index(set_of_rules[i].rule_in)] + set_of_rules[i].rule_out + word[word.index(
             set_of_rules[i].rule_in) + len(set_of_rules[i].rule_in):]
         print("->{}".format(word), end='')
+        if is_final(set_of_rules[i].rule_out):
+            print("{} is final".format(set_of_rules[i].rule_out))
+            break
         i = 0
+
+
+def is_final(rule):
+    try:
+        rule.index(".")
+    except ValueError:
+        return False
+    return True
 
 
 def main_menu():
     while True:
-        print("1. Set dictionary\n2. Set rules\n3. Set wordlist\n4. Apply rules for word\n5. Exit\n> ", end='')
+        print("{}\n1. Set dictionary\n2. Set rules\n3. Set wordlist\n4. Apply rules for word\n5. Exit\n> " .format(warning('Hint! To use λ, just press underscore "_" (without quotation marks). It will automatically be replaced!')), end='')
         option = input()
         if not option.isdigit():
-            print("{}Wrong choice.{}\nPress {}<enter>{} to try again.".format(Culoare.red, Culoare.default, \
-                                                                              Culoare.yellow, Culoare.default))
+            print("{}\nPress {} to try again.".format(error("Wrong choice."), warning("<enter>")))
             input()
             continue
         if int(option) == 1:
@@ -103,41 +112,50 @@ def main_menu():
                 print("Dictionary: ", end='')
                 v = input()
                 if not is_dictionary(v):
-                    print("{}Not a valid dictionary: at least one char is repeating.{}\nPress {}<enter>{} to try again." \
-                          .format(Culoare.red, Culoare.default, Culoare.yellow, Culoare.default))
+                    print("{}\nPress {} to try again.".format(
+                        error("Not a valid dictionary: at least one char is repeating."), warning("<enter>")))
                     input()
                     continue
-                print(
-                    "Is this correct?\n{}y{}/{}<any other input>{}".format(Culoare.blue, Culoare.default, Culoare.red,
-                                                                           Culoare.default))
+                print(v,"\nIs this correct?\n{}\{}" .format(correct("y"),error("any other input")))
                 verify = (input())
                 if verify is 'y' or verify is 'Y':
                     break
 
         elif int(option) == 2:
+            try:
+                v
+            except:
+                print(error("Dictionary is empty."), "Press {} to go back to main.".format(warning("<any key>")))
+                input()
+                main_menu()
             while True:
                 print("Dictionary: ", v)
                 print("Number of rules: ", end='')
-                rules_number = int(input())
+                try:
+                    rules_number = int(input())
+                except ValueError:
+                    print("{}Hit {} to try again.".format(error("Insert a valid number of rules."), warning("<enter>")))
+                    input()
+                    continue
+
                 set_of_rules = []
                 set_rules(rules_number, set_of_rules, v)
                 print("The rules you have set are the following: ")
                 get_rules(set_of_rules)
                 print(
-                    "Is this correct?\n{}y{}/{}<any other input>{}".format(Culoare.blue, Culoare.default, Culoare.red,
-                                                                           Culoare.default))
+                    "Is this correct?\n{}\{}".format(correct("y"), warning("any other input")))
                 verify = (input())
                 if verify is 'y' or verify is 'Y':
                     break
         elif int(option) == 3:
             while True:
-                if not v:
-                    print("{}Error: the dictionary is empty; can not add words{}\nPress {}<enter>{} to return to" \
-                          "main menu.".format(Culoare.red, Culoare.default, Culoare.yellow, Culoare.default))
+                try:
+                    v
+                except:
+                    print(error("Dictionary is empty."), "Press {} to go back to main.".format(warning("<any key>")))
                     input()
-                    break
-                print("Input wordlist. When done, press {}<enter>{} without typing anything.".format(Culoare.yellow, \
-                                                                                                     Culoare.default))
+                    main_menu()
+                print("Input wordlist. When done, press {} without typing anything.".format(warning("enter")))
                 wordlist = []
                 while True:
                     print("Input: ", end='')
@@ -146,16 +164,14 @@ def main_menu():
                         wordlist.pop()
                         break
                     if not is_in_dictionary(v, wordlist[len(wordlist) - 1]):
-                        print("{}Eroare: cuvantul tocmai adaugat contine caractere ce nu sunt in dictionar.\n" \
-                              "apasa {}<enter>{} pentru a incerca din nou.".format(Culoare.red, Culoare.default, \
-                                                                                   Culoare.yellow, Culoare.default))
-                        break
+                        print("{}. {}".format(error(
+                            "Error: the word you just added has at least one char that's not included in the dictionary"),
+                            warning("Try again.")))
+                        wordlist.pop()
                 print("Wordlist: ")
                 for word in wordlist:
                     print(word)
-                print(
-                    "Is this correct?\n{}y{}/{}<any other input>{}".format(Culoare.blue, Culoare.default, Culoare.red,
-                                                                           Culoare.default))
+                print("Is this correct?\n{}\{}".format(correct("y"), error("any other input")))
                 verify = (input())
                 if verify is 'y' or verify is 'Y':
                     break
@@ -167,19 +183,22 @@ def main_menu():
                 print(error("Wordlist is empty."), "Press {} to go back to main.".format(warning("<any key>")))
                 input()
                 main_menu()
-            if not wordlist:
-                print(error("Wordlist is empty."), "Press {} to go back to main.".format(warning("<any key>")))
+            try:
+                set_of_rules
+            except:
+                print(error("No rules set."), "Press {} to go back to main.".format(warning("<any key>")))
                 input()
                 main_menu()
             for word in wordlist:
                 apply_rules(set_of_rules, word)
         elif int(option) == 5:
-            print("exit now")
+            print("Are you sure you want to exit?\n{}\{}".format(correct("y"), error("any other key")))
+            if (input() == "y"):
+                print("Exiting...")
+                exit()
         else:
-            print("{}Wrong choice.{}\nPress {}<enter>{} to try again.".format(Culoare.red, Culoare.default,
-                                                                              Culoare.yellow, Culoare.default))
+            print("{}\nPress {} to try again.".format(error("Wrong chioce."), warning("<enter>")))
             input()
         print("")
-
 
 main_menu()
