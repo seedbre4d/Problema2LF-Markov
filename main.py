@@ -1,13 +1,10 @@
-# Implementarea algoritmului lui Markov
-# Working: algorithm itself
-# TODO: implement lambda
-# TODO: organize and unify
-# TODO: comment code
-# ce jeg de materie
+# Markov algorithm by Iliescu Dragos-Andrei
+# TODO: comment the code a bit more
+
 
 from culori import *
 
-ld = chr(955) # 955 is the position of λ in the complete ASCII dictionary. chr(955) just produces λ (Unicode req.)
+ld = chr(955)  # 955 is the position of λ in the complete ASCII dictionary. chr(955) just produces λ (Unicode req.)
 wordlist = []
 set_of_rules = []
 number_of_rules = 0
@@ -15,52 +12,101 @@ v = ''
 
 
 class Rule:
+    '''
+    Class for a rule
+    It bears the basic set and get functions, nothing special.
+    '''
+
     def __init__(self, dictionary):
         self.v = dictionary
         self.rule_in = ''
         self.rule_out = ''
 
     def set(self):
+        '''
+        Syntax is as follows:
+        rule_in -> rule_out
+        :return: None
+        '''
         while True:
             print("In: ", end='')
             self.rule_in = input()
+            # chunk to exchange all _ to λ
+            while True:
+                try:
+                    self.rule_in = self.rule_in[:self.rule_in.index("_")] + ld + self.rule_in[self.rule_in.index("_") + 1:]
+                except:
+                    break
             if is_in_dictionary(self.v, self.rule_in):
                 break
-            print(error("Rule containing at least one char that is not included withtin dictionary.),"),'\n',warning("Try again."))
+
+            print(error("Rule containing at least one char that is not included withtin dictionary.),"), '\n',
+                  warning("Try again."))
         while True:
-            print("Out: ", end='')
+            print("Out: ", end='')  # to rule
             self.rule_out = input()
+
+            # chunk to exchange all _ to λ
+            while True:
+                try:
+                    self.rule_out = self.rule_out[:self.rule_out.index("_")] + ld + self.rule_out[self.rule_out.index("_") + 1:]
+                except:
+                    break
+
             if is_in_dictionary(self.v, self.rule_out):
                 break
-            print(error("Rule containing at least one char that is not included withtin dictionary.),"), '\n',warning("Try again."))
+            print(error("Rule containing at least one char that is not included withtin dictionary.),"), '\n',
+                  warning("Try again."))
 
     def get(self):
+        '''
+        Just the getter. It's pretty forward
+        :return: rule_in -> rule_out
+        '''
         return "{} -> {}".format(self.rule_in, self.rule_out)
 
 
 def is_in_dictionary(v, word):
+    '''
+    Checks to see if the word is part of the dictionary
+    :param v: dictionary
+    :param word: word to check
+    :return: True or False, regardin the situation
+    '''
     for ch in word:
         try:
             v.index(ch)
-        except ValueError:
-            if ch is ".":
-                if word.index(ch) == 0:
+        except ValueError:  # if we get ValueError from index() it means that
+            if ch is ".":  # we either have
+                if word.index(ch) == 0:  # a final rule
                     continue
-            return False
+            return False  # or the word is not part of the dictionary
     return True
 
 
 def is_dictionary(v):
+    '''
+    Check to see if the given dictionary follows the rules of a dictionary
+    :param v: dictionary
+    :return: True or False, regardin the situation
+    '''
     for ch in v:
         try:
-            v[v.index(ch) + 1:].index(ch)
-        except ValueError:
-            continue
-        return False
+            v[v.index(ch) + 1:].index(ch)  # if from the position of the ch on we find another ch
+        except ValueError:  # we don't get a ValueError
+            continue  # it means we're ok, and continue the loop
+        return False  # otherwise, we're not following the rules of a dictionary.
     return True
 
 
 def set_rules(rules_number, set_of_rules, v):
+    '''
+    Function to set multiple rules
+    :param rules_number: explicit
+    :param set_of_rules: explicit
+    :param v: dictionary
+    :return: rien
+    '''
     for i in range(1, rules_number + 1):
         print(warning("Rule number {}:".format(i)))
         rule = Rule(v)
@@ -69,29 +115,58 @@ def set_rules(rules_number, set_of_rules, v):
 
 
 def get_rules(set_of_rules):
+    '''
+    Simple function to print rules
+    :param set_of_rules: explicit
+    :return: rien
+    '''
     for rule in set_of_rules:
         print("{}. {}".format(set_of_rules.index(rule), rule.get()))
 
 
 def apply_rules(set_of_rules, word):
-    print("{}{}".format("\n", warning(word)), end='')
+    '''
+    Simple function to apply all the rules for a single word
+    :param set_of_rules: explicit
+    :param word: explicit
+    :return: rien
+    '''
+
+    print("{}{}".format("\n", warning(word)), end='')  # prints a new line and the word in yellow
     i = 0
     while i < len(set_of_rules):
         try:
             word.index(set_of_rules[i].rule_in)
-        except ValueError:
-            i += 1
-            continue
+        except ValueError:  # if we get ValueError it means that rule #i was not applied
+            i += 1  # so we increase i and
+            continue  # move on
+
+        # this chunk looks a tad complicated, but it's really not:
+        # we replace the word with the part of itself before we find the rule_in
+        # we add the respective rule_out
+        # and then we replace the other of itself after the rule_in
         word = word[:word.index(set_of_rules[i].rule_in)] + set_of_rules[i].rule_out + word[word.index(
             set_of_rules[i].rule_in) + len(set_of_rules[i].rule_in):]
+
+        # chunk to exchange λ to <rien>
+        while True:
+            try:
+                word = word[:word.index(ld)] + "" + word[word.index(ld) + 1:]
+            except ValueError:
+                break
+
         print("->{}".format(word), end='')
-        if is_final(set_of_rules[i].rule_out):
-            print("{} is final".format(set_of_rules[i].rule_out))
+        if is_final(set_of_rules[i].rule_out):  # if the rule is final, we're finished.
             break
-        i = 0
+        i = 0  # if we got here, it means that a rule was applied, and so we start over again
 
 
 def is_final(rule):
+    '''
+    Checker for the finaal rule
+    :param rule: explicit
+    :return: True or False, regarding the case
+    '''
     try:
         rule.index(".")
     except ValueError:
@@ -100,13 +175,25 @@ def is_final(rule):
 
 
 def main_menu():
+    '''
+    The main menu
+    :return: rien
+    '''
     while True:
-        print("{}\n1. Set dictionary\n2. Set rules\n3. Set wordlist\n4. Apply rules for word\n5. Exit\n> " .format(warning('Hint! To use λ, just press underscore "_" (without quotation marks). It will automatically be replaced!')), end='')
+        # main menu shower
+        print("{}\n1. Set dictionary\n2. Set rules\n3. Set wordlist\n4. Apply rules for word\n5. Exit\n> ".format(
+            warning(
+                'Hint! To use λ, just use underscore "_" (without quotation marks). It will automatically be replaced!')),
+            end='')
+
+        # option getter
         option = input()
-        if not option.isdigit():
+        if not option.isdigit():  # error avoider
             print("{}\nPress {} to try again.".format(error("Wrong choice."), warning("<enter>")))
             input()
             continue
+
+        # if we chose one, this executes
         if int(option) == 1:
             while True:
                 print("Dictionary: ", end='')
@@ -116,11 +203,19 @@ def main_menu():
                         error("Not a valid dictionary: at least one char is repeating."), warning("<enter>")))
                     input()
                     continue
-                print(v,"\nIs this correct?\n{}\{}" .format(correct("y"),error("any other input")))
+
+                # chunk to exchange _ to λ
+                try:
+                    v = v[:v.index("_")] + ld + v[v.index("_") + 1:]
+                except:
+                    None
+
+                print(v, "\nIs this correct?\n{}\{}".format(correct("y"), error("any other input")))
                 verify = (input())
                 if verify is 'y' or verify is 'Y':
                     break
 
+        # if we chose two, this executes
         elif int(option) == 2:
             try:
                 v
@@ -147,6 +242,8 @@ def main_menu():
                 verify = (input())
                 if verify is 'y' or verify is 'Y':
                     break
+
+        # if we chose three, this executes
         elif int(option) == 3:
             while True:
                 try:
@@ -160,6 +257,12 @@ def main_menu():
                 while True:
                     print("Input: ", end='')
                     wordlist.append(input())
+                    # chunk to exchange _ to λ
+                    while True:
+                        try:
+                            wordlist[len(wordlist)-1] = wordlist[len(wordlist)-1][:wordlist[len(wordlist)-1].index("_")] + ld + wordlist[len(wordlist)-1][wordlist[len(wordlist)-1].index("_") + 1:]
+                        except ValueError:
+                            break
                     if wordlist[len(wordlist) - 1] is "":
                         wordlist.pop()
                         break
@@ -176,6 +279,7 @@ def main_menu():
                 if verify is 'y' or verify is 'Y':
                     break
 
+        # if we chose four, this executes
         elif int(option) == 4:
             try:
                 wordlist
@@ -191,6 +295,8 @@ def main_menu():
                 main_menu()
             for word in wordlist:
                 apply_rules(set_of_rules, word)
+
+        # if we chose five, this executes
         elif int(option) == 5:
             print("Are you sure you want to exit?\n{}\{}".format(correct("y"), error("any other key")))
             if (input() == "y"):
@@ -200,5 +306,6 @@ def main_menu():
             print("{}\nPress {} to try again.".format(error("Wrong chioce."), warning("<enter>")))
             input()
         print("")
+
 
 main_menu()
